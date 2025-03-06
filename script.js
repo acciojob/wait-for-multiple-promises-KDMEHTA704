@@ -1,29 +1,41 @@
-window.onload = function () {
-            function createRandomPromise(id) {
-                const time = Math.random() * (3 - 1) + 1; // Random time between 1 and 3 seconds
-                return new Promise(resolve => {
-                    setTimeout(() => resolve({ id, time: time.toFixed(3) }), time * 1000);
-                });
-            }
+document.addEventListener("DOMContentLoaded", function () {
+    let tbody = document.getElementById("output");
 
-            const output = document.getElementById("output");
-            output.innerHTML = '<tr><td colspan="2">Loading...</td></tr>'; // Ensure "Loading..." is set initially
+    // Show initial loading row
+    tbody.innerHTML = `<tr id="loading"><td colspan="2">Loading...</td></tr>`;
 
-            const promises = [
-                createRandomPromise(1),
-                createRandomPromise(2),
-                createRandomPromise(3)
-            ];
+    function createPromise(index) {
+        return new Promise((resolve) => {
+            let time = (Math.random() * (3 - 1) + 1).toFixed(3); // Random time between 1-3 seconds
+            setTimeout(() => resolve({ index, time }), time * 1000);
+        });
+    }
 
-            Promise.all(promises).then(results => {
-                output.innerHTML = ""; // Remove the loading row
-                results.forEach(result => {
-                    const row = `<tr><td>Promise ${result.id}</td><td>${result.time}</td></tr>`;
-                    output.innerHTML += row;
-                });
+    // Create three promises
+    let promises = [createPromise(1), createPromise(2), createPromise(3)];
 
-                // Calculate total time (max time taken by any promise)
-                const totalTime = Math.max(...results.map(r => parseFloat(r.time))).toFixed(3);
-                output.innerHTML += `<tr><td><strong>Total</strong></td><td><strong>${totalTime}</strong></td></tr>`;
-            });
-        };
+    // Capture start time
+    let startTime = performance.now();
+
+    Promise.all(promises).then(results => {
+        let endTime = performance.now();
+        let totalTime = ((endTime - startTime) / 1000).toFixed(3); // Total execution time
+
+        tbody.innerHTML = ""; // Clear loading row
+
+        // Sort results by index for better order
+        results.sort((a, b) => a.index - b.index).forEach(result => {
+            let row = `<tr>
+                <td>Promise ${result.index}</td>
+                <td>${result.time}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // Add total time row
+        tbody.innerHTML += `<tr>
+            <td><strong>Total</strong></td>
+            <td><strong>${totalTime}</strong></td>
+        </tr>`;
+    });
+});
